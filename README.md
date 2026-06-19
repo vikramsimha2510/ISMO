@@ -13,6 +13,25 @@ ISMO is a full-stack project management platform built to help engineers and tea
 
 ---
 
+## Live Demo & Evaluation Guide
+
+**Live Application URL**: [https://ismo-sepia.vercel.app](https://ismo-sepia.vercel.app)
+
+To evaluate the application, you can either create your own account or use the pre-configured demo account below to explore the dashboard, manage projects, and track tasks.
+
+### Demo Account
+- **Email**: `demo@ismo.com`
+- **Password**: `demo1234`
+
+### Recommended Testing Flow
+1. **Sign In**: Use the demo account or create a new one via the Sign Up page.
+2. **Dashboard**: View the summary statistics and recent activity feeds.
+3. **Projects**: Navigate to the Projects page to create a new project with a start and end date.
+4. **Tasks**: Inside a project, create tasks, assign them priorities (Low, Medium, High), and update their status (Pending, In Progress, Completed).
+5. **Activity Tracking**: Notice how actions like creating projects or updating tasks are automatically logged in the Activity feed.
+
+---
+
 ## Database Schema & ER Diagram
 
 The database uses PostgreSQL and is managed entirely through Prisma. The schema includes users, profiles, projects, tasks, and activity logs.
