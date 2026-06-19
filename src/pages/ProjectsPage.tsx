@@ -3,6 +3,7 @@ import type { Project, ProjectStatus, ProjectHealth } from '../types';
 import { projectsApi } from '../api';
 import { ProjectCard } from '../components/projects/ProjectCard';
 import { ProjectForm } from '../components/projects/ProjectForm';
+import { JoinProjectModal } from '../components/projects/JoinProjectModal';
 import { Button, LoadingSpinner, VellumCard } from '../components/common';
 import { Plus, Search, Filter, ArrowUpDown } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -10,7 +11,7 @@ import toast from 'react-hot-toast';
 export const ProjectsPage = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [modalState, setModalState] = useState<'none' | 'choice' | 'create' | 'join'>('none');
   
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,19 +57,19 @@ export const ProjectsPage = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-graphite/10 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-graphite/10 pb-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-deepline tracking-tight">Project Directory</h1>
           <p className="font-mono text-sm text-graphite/60 mt-1 uppercase tracking-widest">Manage and track active initiatives</p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)} className="shrink-0" variant="gradient">
+        <Button onClick={() => setModalState('choice')} className="w-full sm:w-auto shrink-0" variant="gradient">
           <Plus className="w-4 h-4" /> Initialize Project
         </Button>
       </div>
 
       {/* Control Bar */}
-      <VellumCard className="!p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
-        <div className="relative w-full md:w-96">
+      <VellumCard className="!p-4 flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between shadow-sm">
+        <div className="relative w-full lg:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-graphite/40" />
           <input 
             type="text" 
@@ -79,8 +80,8 @@ export const ProjectsPage = () => {
           />
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2 bg-vellum/50 border border-graphite/20 rounded-lg px-2 py-1">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <div className="flex items-center gap-2 bg-vellum/50 border border-graphite/20 rounded-lg px-2 py-1 w-full sm:w-auto">
             <Filter className="w-4 h-4 text-graphite/40" />
             <select 
               className="bg-transparent font-mono text-xs uppercase tracking-wider text-graphite/80 focus:outline-none cursor-pointer"
@@ -94,7 +95,7 @@ export const ProjectsPage = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 bg-vellum/50 border border-graphite/20 rounded-lg px-2 py-1">
+          <div className="flex items-center gap-2 bg-vellum/50 border border-graphite/20 rounded-lg px-2 py-1 w-full sm:w-auto">
             <Filter className="w-4 h-4 text-graphite/40" />
             <select 
               className="bg-transparent font-mono text-xs uppercase tracking-wider text-graphite/80 focus:outline-none cursor-pointer"
@@ -108,7 +109,7 @@ export const ProjectsPage = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 bg-vellum/50 border border-graphite/20 rounded-lg px-2 py-1">
+          <div className="flex items-center gap-2 bg-vellum/50 border border-graphite/20 rounded-lg px-2 py-1 w-full sm:w-auto">
             <ArrowUpDown className="w-4 h-4 text-graphite/40" />
             <select 
               className="bg-transparent font-mono text-xs uppercase tracking-wider text-graphite/80 focus:outline-none cursor-pointer"
@@ -157,26 +158,58 @@ export const ProjectsPage = () => {
         </VellumCard>
       )}
 
-      {isFormOpen && (
+      {/* Choice Modal */}
+      {modalState === 'choice' && (
         <div className="fixed inset-0 bg-deepline/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <VellumCard className="w-full max-w-lg">
+          <VellumCard className="w-full max-w-md">
+            <h2 className="font-display font-bold text-2xl text-deepline mb-6 text-center">Initialize Project</h2>
+            <div className="grid grid-cols-1 gap-4">
+              <Button onClick={() => setModalState('create')} variant="gradient" className="py-4 text-lg">
+                Create New Project
+              </Button>
+              <Button onClick={() => setModalState('join')} variant="ghost" className="py-4 text-lg border border-linework text-linework hover:bg-linework/10">
+                Join a Project
+              </Button>
+            </div>
+            <div className="mt-6 text-center">
+              <Button onClick={() => setModalState('none')} variant="ghost">Cancel</Button>
+            </div>
+          </VellumCard>
+        </div>
+      )}
+
+      {/* Create Modal */}
+      {modalState === 'create' && (
+        <div className="fixed inset-0 bg-deepline/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <VellumCard className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h2 className="font-display font-bold text-2xl text-deepline mb-6">Initialize New Project</h2>
             <ProjectForm
               onSubmit={async (data) => {
                 try {
                   await projectsApi.create(data);
-                  setIsFormOpen(false);
+                  setModalState('none');
                   fetchProjects();
                   toast.success('Project initialized successfully');
                 } catch (error) {
                   toast.error('Failed to initialize project');
                 }
               }}
-              onCancel={() => setIsFormOpen(false)}
+              onCancel={() => setModalState('none')}
               isLoading={false}
             />
           </VellumCard>
         </div>
+      )}
+
+      {/* Join Modal */}
+      {modalState === 'join' && (
+        <JoinProjectModal 
+          onJoin={() => {
+            setModalState('none');
+            fetchProjects();
+          }} 
+          onCancel={() => setModalState('none')} 
+        />
       )}
     </div>
   );

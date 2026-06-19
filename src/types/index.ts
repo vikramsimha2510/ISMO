@@ -2,6 +2,7 @@ export type ProjectStatus = 'Not Started' | 'In Progress' | 'Completed';
 export type TaskStatus = 'Pending' | 'In Progress' | 'Completed';
 export type TaskPriority = 'Low' | 'Medium' | 'High';
 export type ProjectHealth = 'On Track' | 'At Risk' | 'Delayed';
+export type MemberRole = 'OWNER' | 'MEMBER';
 
 export interface User {
   id: string;
@@ -16,6 +17,21 @@ export interface TeamMember {
   role: string;
 }
 
+export interface ProjectMemberInfo {
+  userId: string;
+  fullName: string;
+  role: MemberRole;
+  joinedAt: string;
+  avatar: string;
+}
+
+export interface MembersResponse {
+  members: ProjectMemberInfo[];
+  inviteCode?: string;
+  inviteEnabled?: boolean;
+  inviteLink?: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -27,6 +43,7 @@ export interface Project {
   completionPercentage?: number;
   health?: ProjectHealth;
   teamMembers?: TeamMember[];
+  role?: MemberRole;
 }
 
 export interface Task {
@@ -38,6 +55,8 @@ export interface Task {
   status: TaskStatus;
   dueDate?: string;
   assignee?: TeamMember;
+  createdByName?: string;
+  createdByUserId?: string;
 }
 
 export interface AIInsight {

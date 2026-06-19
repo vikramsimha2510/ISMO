@@ -35,7 +35,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
             <Folder className="w-5 h-5 text-linework" />
           </div>
           <div>
-            <h3 className="font-display font-bold text-lg text-deepline group-hover:text-linework transition-colors">{project.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-display font-bold text-lg text-deepline group-hover:text-linework transition-colors">{project.name}</h3>
+              {project.role === 'MEMBER' && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-linework/10 text-linework">
+                  Member
+                </span>
+              )}
+            </div>
             {project.health && (
               <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider mt-1 ${healthConfig.bg} ${healthConfig.color}`}>
                 <HealthIcon className="w-3 h-3" /> {project.health}

@@ -12,19 +12,21 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   Info, 
-  Clock, 
+  Clock,
   ChevronRight, 
   GitCommit,
   Milestone
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export const DashboardPage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
         const data = await dashboardApi.getStats();
         setStats(data);
@@ -34,8 +36,8 @@ export const DashboardPage = () => {
         setIsLoading(false);
       }
     };
-    fetchStats();
-  }, []);
+    fetchData();
+  }, [location.search]);
 
   if (isLoading || !stats) {
     return (
@@ -64,14 +66,18 @@ export const DashboardPage = () => {
     <div className="space-y-8 animate-in fade-in duration-500">
       
       {/* Page Header */}
-      <div className="flex justify-between items-end border-b border-graphite/10 pb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-graphite/10 pb-4">
         <div>
           <h1 className="font-display text-3xl font-bold text-deepline tracking-tight">System Overview</h1>
           <p className="font-mono text-sm text-graphite/60 mt-1 uppercase tracking-widest">Real-time Telemetry & Analytics</p>
         </div>
-        <div className="hidden sm:flex items-center gap-2 bg-linework/10 text-linework px-4 py-2 rounded-lg border border-linework/20 shadow-[0_0_15px_rgba(94,200,224,0.1)]">
-          <Activity className="w-4 h-4 animate-pulse" />
-          <span className="font-mono text-xs tracking-wider uppercase font-bold">System Nominal</span>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+
+
+          <div className="hidden sm:flex items-center gap-2 bg-linework/10 text-linework px-4 py-2 rounded-lg border border-linework/20 shadow-[0_0_15px_rgba(94,200,224,0.1)]">
+            <Activity className="w-4 h-4 animate-pulse" />
+            <span className="font-mono text-xs tracking-wider uppercase font-bold">System Nominal</span>
+          </div>
         </div>
       </div>
 
@@ -104,13 +110,13 @@ export const DashboardPage = () => {
           
           {/* Main Chart */}
           <VellumCard className="!p-0 overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-graphite/5 flex justify-between items-center bg-vellum/50">
+            <div className="p-6 border-b border-graphite/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-vellum/50">
               <div>
                 <h3 className="font-display font-bold text-lg text-deepline">Project Progress Velocity</h3>
                 <p className="font-mono text-xs text-graphite/50 uppercase tracking-widest">Expected vs Completed Tasks (7 Days)</p>
               </div>
             </div>
-            <div className="p-6 h-[300px] w-full blueprint-bg relative">
+            <div className="p-4 sm:p-6 h-[300px] w-full blueprint-bg relative min-w-0">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats.progressTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>

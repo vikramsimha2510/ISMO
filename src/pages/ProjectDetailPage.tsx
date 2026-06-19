@@ -6,6 +6,7 @@ import { Button, LoadingSpinner, VellumCard, Stamp } from '../components/common'
 import { TaskCard } from '../components/tasks/TaskCard';
 import { TaskForm } from '../components/tasks/TaskForm';
 import { ProjectForm } from '../components/projects/ProjectForm';
+import { MembersPanel } from '../components/projects/MembersPanel';
 import { ArrowLeft, Plus, Search, Filter, Trash2, Edit3, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -136,6 +137,8 @@ export const ProjectDetailPage = () => {
   if (isLoading && !project) return <LoadingSpinner />;
   if (!project) return null;
 
+  const isOwner = project.role === 'OWNER';
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200 pb-12">
       <button 
@@ -158,16 +161,20 @@ export const ProjectDetailPage = () => {
             </p>
           </div>
           <div className="flex gap-3 self-end md:self-auto">
-            <Button variant="ghost" onClick={() => setShowProjectEdit(true)}>
-              <Edit3 className="w-4 h-4" /> Edit
-            </Button>
-            <Button variant="danger" onClick={handleDeleteProject}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            {isOwner && (
+              <>
+                <Button variant="ghost" onClick={() => setShowProjectEdit(true)}>
+                  <Edit3 className="w-4 h-4" /> Edit
+                </Button>
+                <Button variant="danger" onClick={handleDeleteProject}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
-        <div className="flex gap-8 font-mono text-sm uppercase tracking-widest text-graphite/70">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 font-mono text-sm uppercase tracking-widest text-graphite/70">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-linework" />
             <span>START: {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'TBD'}</span>
@@ -178,6 +185,9 @@ export const ProjectDetailPage = () => {
           </div>
         </div>
       </VellumCard>
+
+      {/* Members Panel */}
+      {id && <MembersPanel projectId={id} userRole={project.role || 'MEMBER'} />}
 
       {/* Tasks Section */}
       <div className="mt-12">
@@ -200,7 +210,7 @@ export const ProjectDetailPage = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-4 w-full md:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             <div className="relative w-full md:w-40">
               <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-graphite/50 pointer-events-none" />
               <select 
@@ -253,7 +263,7 @@ export const ProjectDetailPage = () => {
       {/* Modals */}
       {(showTaskForm || editingTask) && (
         <div className="fixed inset-0 bg-deepline/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <VellumCard className="w-full max-w-lg p-6 md:p-8 animate-in zoom-in-95 duration-200">
+          <VellumCard className="w-full max-w-lg p-6 md:p-8 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <h2 className="font-display text-2xl font-bold mb-6 border-b border-graphite/10 pb-4">
               {editingTask ? 'Edit Task Record' : 'Initialize Task'}
             </h2>
@@ -270,7 +280,7 @@ export const ProjectDetailPage = () => {
 
       {showProjectEdit && (
         <div className="fixed inset-0 bg-deepline/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <VellumCard className="w-full max-w-lg p-6 md:p-8 animate-in zoom-in-95 duration-200">
+          <VellumCard className="w-full max-w-lg p-6 md:p-8 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <h2 className="font-display text-2xl font-bold mb-6 border-b border-graphite/10 pb-4">
               Update Project Parameters
             </h2>

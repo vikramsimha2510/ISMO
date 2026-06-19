@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -41,8 +41,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ initialData, onSubmit,
       name: initialData?.name || '',
       description: initialData?.description || '',
       status: initialData?.status || 'Not Started',
-      startDate: initialData?.startDate || '',
-      endDate: initialData?.endDate || '',
+      startDate: initialData?.startDate ? new Date(initialData.startDate).toISOString().split('T')[0] : '',
+      endDate: initialData?.endDate ? new Date(initialData.endDate).toISOString().split('T')[0] : '',
     },
   });
 
@@ -58,7 +58,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ initialData, onSubmit,
         registration={register('description')}
         error={errors.description?.message}
       />
-      
+
       <Select
         label="Status"
         options={[

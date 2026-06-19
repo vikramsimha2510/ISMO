@@ -33,7 +33,15 @@ export const LoginPage = () => {
       setIsLoading(true);
       await login(data);
       toast.success('Logged in successfully');
-      navigate('/dashboard');
+      
+      // Check for pending invite code from JoinPage
+      const pendingCode = sessionStorage.getItem('pendingInviteCode');
+      if (pendingCode) {
+        sessionStorage.removeItem('pendingInviteCode');
+        navigate(`/join?code=${pendingCode}`);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to login');
     } finally {
@@ -42,9 +50,9 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="fixed inset-0 w-full flex bg-deepline font-body overflow-hidden z-[100]">
+    <div className="min-h-[100dvh] w-full flex bg-deepline font-body overflow-y-auto relative z-[100]">
       {/* Left Column: Auth Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center relative p-8 h-full overflow-y-auto">
+      <div className="w-full lg:w-1/2 flex items-center justify-center relative p-4 sm:p-8 h-full min-h-[100dvh]">
         <div className="absolute inset-0 blueprint-bg pointer-events-none opacity-50"></div>
         
         <div className="w-full max-w-md relative z-10 my-auto">
@@ -68,7 +76,7 @@ export const LoginPage = () => {
             </p>
           </div>
 
-          <div className="glass-panel rounded-2xl p-8 md:p-10 relative overflow-hidden group">
+          <div className="glass-panel rounded-2xl p-6 sm:p-8 md:p-10 relative overflow-hidden group">
             {/* Subtle glow effect behind card */}
             <div className="absolute -inset-[100px] bg-gradient-to-br from-linework/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
             

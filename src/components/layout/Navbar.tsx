@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, PenTool } from 'lucide-react';
+import { LogOut, PenTool, Menu, X } from 'lucide-react';
 
 export const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -52,7 +53,7 @@ export const Navbar = () => {
               </span>
               <button
                 onClick={handleLogout}
-                className="p-2 text-vellum/70 hover:text-signal-red transition-colors group relative"
+                className="hidden md:block p-2 text-vellum/70 hover:text-signal-red transition-colors group relative"
                 aria-label="Logout"
               >
                 <LogOut className="w-5 h-5" />
@@ -60,10 +61,49 @@ export const Navbar = () => {
                   Logout
                 </span>
               </button>
+              
+              {/* Mobile menu button */}
+              <button 
+                className="md:hidden p-2 text-vellum hover:text-linework transition-colors"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Mobile Menu Panel */}
+      {user && isMenuOpen && (
+        <div className="md:hidden border-t border-linework/20 bg-deepline absolute w-full left-0 z-50">
+          <div className="px-4 py-4 space-y-4 font-mono text-sm tracking-widest uppercase flex flex-col">
+            <Link 
+              to="/dashboard" 
+              className="block text-vellum/70 hover:text-linework transition-colors py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Dashboard
+            </Link>
+            <Link 
+              to="/projects" 
+              className="block text-vellum/70 hover:text-linework transition-colors py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Projects
+            </Link>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                handleLogout();
+              }}
+              className="text-left text-signal-red hover:text-signal-red/80 transition-colors py-2 flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

@@ -3,23 +3,58 @@ import { AppError } from '../../utils/AppError.js';
 import type { CreateTaskInput, UpdateTaskInput, TaskQuery } from './tasks.schema.js';
 import { mapDbToTaskStatus, mapDbToTaskPriority } from './tasks.schema.js';
 
+/**
+ * Verify that a user is a member of the given project.
+ * Throws 404 if not a member.
+ */
+async function assertProjectMembership(projectId: string, userId: string) {
+  const membership = await prisma.projectMember.findUnique({
+    where: { projectId_userId: { projectId, userId } },
+  });
+  if (!membership) {
+    throw new AppError('Project not found', 404);
+  }
+  return membership;
+}
+
+/**
+ * Format a task for API response, resolving the creator name.
+ */
+function formatTask(task: any) {
+  return {
+    ...task,
+    status: mapDbToTaskStatus(task.status),
+    priority: mapDbToTaskPriority(task.priority),
+    createdByName: task.createdByUser?.fullName ?? null,
+    createdByUser: undefined, // strip the relation object
+  };
+}
+
 export const tasksService = {
-  // Hardcoded for UI rendering purposes
-  FAKE_ASSIGNEE: { id: 'tm_1', name: 'Sarah Chen', role: 'Lead Architect', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Sarah' },
   /**
-   * List all tasks for the authenticated user, with optional filtering
-   * (by projectId, search, status, priority) and pagination.
+   * List tasks. If projectId is provided, verify membership and list that project's tasks.
+   * Otherwise, list tasks across all projects the user is a member of.
    */
   async getAll(userId: string, query: TaskQuery) {
     const { projectId, search, status, priority, page, limit } = query;
     const skip = (page - 1) * limit;
 
-    // Always scope to the authenticated user
-    const where: any = { userId };
+    const where: any = {};
 
     if (projectId) {
+      // Verify the user is a member of this specific project
+      await assertProjectMembership(projectId, userId);
       where.projectId = projectId;
+    } else {
+      // Get all projects the user is a member of
+      const memberships = await prisma.projectMember.findMany({
+        where: { userId },
+        select: { projectId: true },
+      });
+      const projectIds = memberships.map((m) => m.projectId);
+      where.projectId = { in: projectIds };
     }
+
     if (search) {
       where.name = { contains: search, mode: 'insensitive' };
     }
@@ -36,59 +71,63 @@ export const tasksService = {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
+        include: {
+          user: { select: { fullName: true } },
+        },
       }),
       prisma.task.count({ where }),
     ]);
 
-    const data = tasks.map(t => ({
+    const data = tasks.map((t) => ({
       ...t,
       status: mapDbToTaskStatus(t.status),
       priority: mapDbToTaskPriority(t.priority),
-      assignee: tasksService.FAKE_ASSIGNEE
+      createdByName: t.user?.fullName ?? null,
+      user: undefined, // strip the relation object
     }));
 
     return { data, total, page, limit };
   },
 
   /**
-   * Get a single task by ID — only if the authenticated user owns it.
+   * Get a single task by ID — verify the user is a member of its project.
    */
   async getById(id: string, userId: string) {
-    const task = await prisma.task.findFirst({
-      where: { id, userId },
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: {
+        user: { select: { fullName: true } },
+      },
     });
 
     if (!task) {
       throw new AppError('Task not found', 404);
     }
 
+    // Verify membership on the task's project
+    await assertProjectMembership(task.projectId, userId);
+
     return {
       ...task,
       status: mapDbToTaskStatus(task.status),
       priority: mapDbToTaskPriority(task.priority),
-      assignee: tasksService.FAKE_ASSIGNEE
+      createdByName: task.user?.fullName ?? null,
+      user: undefined,
     };
   },
 
   /**
-   * Create a new task.
-   * Verifies that the referenced project belongs to the authenticated user
-   * before creating the task.
+   * Create a new task. Verifies the user is a member of the target project.
+   * Records createdByUserId for attribution.
    */
   async create(userId: string, data: CreateTaskInput) {
-    // Verify the project belongs to this user
-    const project = await prisma.project.findFirst({
-      where: { id: data.projectId, userId },
-    });
-
-    if (!project) {
-      throw new AppError('Project not found', 404);
-    }
+    await assertProjectMembership(data.projectId, userId);
 
     const task = await prisma.task.create({
       data: {
         ...data,
-        userId, // Store userId directly on the task for faster ownership queries
+        userId,
+        createdByUserId: userId,
       },
     });
 
@@ -104,21 +143,20 @@ export const tasksService = {
       ...task,
       status: mapDbToTaskStatus(task.status),
       priority: mapDbToTaskPriority(task.priority),
-      assignee: tasksService.FAKE_ASSIGNEE
     };
   },
 
   /**
-   * Update a task — only if the authenticated user owns it.
+   * Update a task — verify the user is a member of the task's project.
    */
   async update(id: string, userId: string, data: UpdateTaskInput) {
-    const existing = await prisma.task.findFirst({
-      where: { id, userId },
-    });
+    const existing = await prisma.task.findUnique({ where: { id } });
 
     if (!existing) {
       throw new AppError('Task not found', 404);
     }
+
+    await assertProjectMembership(existing.projectId, userId);
 
     const updated = await prisma.task.update({
       where: { id },
@@ -142,21 +180,20 @@ export const tasksService = {
       ...updated,
       status: mapDbToTaskStatus(updated.status),
       priority: mapDbToTaskPriority(updated.priority),
-      assignee: tasksService.FAKE_ASSIGNEE
     };
   },
 
   /**
-   * Delete a task — only if the authenticated user owns it.
+   * Delete a task — verify the user is a member of the task's project.
    */
   async remove(id: string, userId: string) {
-    const existing = await prisma.task.findFirst({
-      where: { id, userId },
-    });
+    const existing = await prisma.task.findUnique({ where: { id } });
 
     if (!existing) {
       throw new AppError('Task not found', 404);
     }
+
+    await assertProjectMembership(existing.projectId, userId);
 
     await prisma.$transaction([
       prisma.activity.create({

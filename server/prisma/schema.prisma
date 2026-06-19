@@ -1,6 +1,5 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
@@ -34,6 +33,13 @@ enum TaskPriority {
   @@schema("public")
 }
 
+enum MemberRole {
+  OWNER
+  MEMBER
+
+  @@schema("public")
+}
+
 /// Stub model — just enough to reference Supabase's real auth.users table
 model AuthUser {
   id      String   @id @db.Uuid
@@ -44,30 +50,34 @@ model AuthUser {
 }
 
 model Profile {
-  id        String    @id @db.Uuid
-  fullName  String
-  createdAt DateTime  @default(now())
-  authUser  AuthUser  @relation(fields: [id], references: [id], onDelete: Cascade)
-  projects  Project[]
-  tasks     Task[]
-  activities Activity[]
+  id          String          @id @db.Uuid
+  fullName    String
+  createdAt   DateTime        @default(now())
+  authUser    AuthUser        @relation(fields: [id], references: [id], onDelete: Cascade)
+  projects    Project[]
+  tasks          Task[]
+  activities     Activity[]
+  memberships    ProjectMember[]
 
   @@map("profiles")
   @@schema("public")
 }
 
 model Project {
-  id          String        @id @default(uuid())
-  userId      String        @db.Uuid
-  user        Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  status      ProjectStatus @default(NOT_STARTED)
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  tasks       Task[]
+  id            String          @id @default(uuid())
+  userId        String          @db.Uuid
+  user          Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  status        ProjectStatus   @default(NOT_STARTED)
+  startDate     DateTime?
+  endDate       DateTime?
+  inviteCode    String?         @unique @default(uuid())
+  inviteEnabled Boolean?        @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  tasks         Task[]
+  members       ProjectMember[]
 
   @@index([userId])
   @@index([status])
@@ -76,24 +86,40 @@ model Project {
 }
 
 model Task {
-  id          String       @id @default(uuid())
-  projectId   String
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId      String       @db.Uuid
-  user        Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  priority    TaskPriority @default(MEDIUM)
-  status      TaskStatus   @default(PENDING)
-  dueDate     DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id              String       @id @default(uuid())
+  projectId       String
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId          String       @db.Uuid
+  user            Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  priority        TaskPriority @default(MEDIUM)
+  status          TaskStatus   @default(PENDING)
+  dueDate         DateTime?
+  createdByUserId String?      @db.Uuid
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@index([projectId])
   @@index([userId])
   @@index([status])
   @@index([priority])
   @@index([name])
+  @@schema("public")
+}
+
+model ProjectMember {
+  id        String     @id @default(uuid())
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String     @db.Uuid
+  user      Profile    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      MemberRole @default(MEMBER)
+  joinedAt  DateTime   @default(now())
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
   @@schema("public")
 }
 

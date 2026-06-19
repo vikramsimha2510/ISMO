@@ -26,9 +26,18 @@ To evaluate the application, you can either create your own account or use the p
 ### Recommended Testing Flow
 1. **Sign In**: Use the demo account or create a new one via the Sign Up page.
 2. **Dashboard**: View the summary statistics and recent activity feeds.
-3. **Projects**: Navigate to the Projects page to create a new project with a start and end date.
-4. **Tasks**: Inside a project, create tasks, assign them priorities (Low, Medium, High), and update their status (Pending, In Progress, Completed).
+3. **Projects & Collaboration**: Navigate to the Projects page to create a new project. Invite other team members to collaborate by sharing the project's unique invite code.
+4. **Tasks**: Inside a project, create tasks, assign them priorities (Low, Medium, High), and update their status (Pending, In Progress, Completed). Any project member can manage tasks.
 5. **Activity Tracking**: Notice how actions like creating projects or updating tasks are automatically logged in the Activity feed.
+
+---
+
+## Key Features
+
+- **Multi-User Collaboration**: Invite team members to your projects using shareable invite links. Members get full access to manage tasks and view project details.
+- **Role-Based Access**: Project owners have exclusive rights to manage project settings, regenerate invite codes, and remove members.
+- **Real-Time Dashboards**: Visualize productivity, task completion velocity, and critical deadlines.
+- **Activity Feed**: Keep track of every action taken within the platform with a global activity log.
 
 ---
 
@@ -40,6 +49,8 @@ The database uses PostgreSQL and is managed entirely through Prisma. The schema 
 erDiagram
     AuthUser ||--o| Profile : "1 to 1"
     Profile ||--o{ Project : "creates"
+    Profile ||--o{ ProjectMember : "belongs to"
+    Project ||--o{ ProjectMember : "has"
     Profile ||--o{ Task : "assigned to"
     Profile ||--o{ Activity : "performs"
     Project ||--o{ Task : "contains"
@@ -56,14 +67,24 @@ erDiagram
 
     Project {
         String id PK
-        Uuid userId FK "FK to Profile"
+        Uuid userId FK "Owner FK to Profile"
         String name
         String description
         ProjectStatus status "NOT_STARTED, IN_PROGRESS, COMPLETED"
         DateTime startDate
         DateTime endDate
+        String inviteCode
+        Boolean inviteEnabled
         DateTime createdAt
         DateTime updatedAt
+    }
+
+    ProjectMember {
+        String id PK
+        String projectId FK "FK to Project"
+        Uuid userId FK "FK to Profile"
+        MemberRole role "OWNER, MEMBER"
+        DateTime joinedAt
     }
 
     Task {
@@ -75,6 +96,7 @@ erDiagram
         TaskPriority priority "LOW, MEDIUM, HIGH"
         TaskStatus status "PENDING, IN_PROGRESS, COMPLETED"
         DateTime dueDate
+        Uuid createdByUserId FK "FK to Profile"
         DateTime createdAt
         DateTime updatedAt
     }
