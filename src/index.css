@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@theme {
+  --color-deepline: #0E1F33;
+  --color-vellum: #F2F5F0;
+  --color-linework: #5EC8E0;
+  --color-linework-text: #7FD4E8;
+  --color-graphite: #1C2530;
+  --color-stamp-green: #2E9166;
+  --color-amber-flag: #E8A33D;
+  --color-signal-red: #D64545;
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "IBM Plex Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+@layer base {
+  :root {
+    --deepline: #0E1F33;
+    --vellum: #F2F5F0;
+    --linework: #5EC8E0;
+    --linework-text: #7FD4E8;
+    --graphite: #1C2530;
+    --stamp-green: #2E9166;
+    --amber-flag: #E8A33D;
+    --signal-red: #D64545;
+  }
+
+  body {
+    @apply bg-deepline text-graphite font-body antialiased min-h-screen overflow-x-hidden;
+  }
+
+  ::selection {
+    @apply bg-linework text-deepline;
+  }
+
+  /* Consistent Focus Rings */
+  *:focus-visible {
+    outline: 2px solid var(--linework);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(94, 200, 224, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(94, 200, 224, 0.05) 1px, transparent 1px);
+  }
+
+  .corner-ticks {
+    position: relative;
+  }
+
+  .corner-ticks::before,
+  .corner-ticks::after {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    transition: all 0.2s ease-in-out;
+    z-index: 10;
+  }
+
+  .corner-ticks::before {
+    top: -1px;
+    left: -1px;
+    border-top: 2px solid var(--linework);
+    border-left: 2px solid var(--linework);
+  }
+
+  .corner-ticks::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 2px solid var(--linework);
+    border-right: 2px solid var(--linework);
+  }
+
+  .glass-panel {
+    background: rgba(242, 245, 240, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(242, 245, 240, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(14, 31, 51, 0.37);
+  }
+
+  .blueprint-bg {
+    background-image: 
+      linear-gradient(to right, rgba(94, 200, 224, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(94, 200, 224, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center;
+  }
+}
+
+/* Inner wrapper for the other two corner ticks */
+.corner-ticks-inner {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+.corner-ticks-inner::before,
+.corner-ticks-inner::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  transition: all 0.2s ease-in-out;
+}
+.corner-ticks-inner::before {
+  top: -1px;
+  right: -1px;
+  border-top: 2px solid var(--linework);
+  border-right: 2px solid var(--linework);
+}
+.corner-ticks-inner::after {
+  bottom: -1px;
+  left: -1px;
+  border-bottom: 2px solid var(--linework);
+  border-left: 2px solid var(--linework);
+}
+
+/* Hover effects for all ticks */
+.group:hover .corner-ticks::before,
+.group:hover .corner-ticks::after,
+.corner-ticks:hover::before,
+.corner-ticks:hover::after,
+.group:hover .corner-ticks-inner::before,
+.group:hover .corner-ticks-inner::after,
+.corner-ticks:hover .corner-ticks-inner::before,
+.corner-ticks:hover .corner-ticks-inner::after {
+  width: 16px;
+  height: 16px;
+  border-color: var(--linework-text);
+}
+
+/* Scrollbar styling for vellum look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--deepline);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(94, 200, 224, 0.2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 200, 224, 0.4);
+}

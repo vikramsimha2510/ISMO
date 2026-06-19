@@ -1,0 +1,111 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["public", "auth"]
+}
+
+enum ProjectStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+
+  @@schema("public")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+
+  @@schema("public")
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@schema("public")
+}
+
+/// Stub model — just enough to reference Supabase's real auth.users table
+model AuthUser {
+  id      String   @id @db.Uuid
+  Profile Profile?
+
+  @@map("users")
+  @@schema("auth")
+}
+
+model Profile {
+  id        String    @id @db.Uuid
+  fullName  String
+  createdAt DateTime  @default(now())
+  authUser  AuthUser  @relation(fields: [id], references: [id], onDelete: Cascade)
+  projects  Project[]
+  tasks     Task[]
+  activities Activity[]
+
+  @@map("profiles")
+  @@schema("public")
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  userId      String        @db.Uuid
+  user        Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      ProjectStatus @default(NOT_STARTED)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  tasks       Task[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([name])
+  @@schema("public")
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId      String       @db.Uuid
+  user        Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(PENDING)
+  dueDate     DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([projectId])
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([name])
+  @@schema("public")
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String   @db.Uuid
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  target    String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@schema("public")
+}

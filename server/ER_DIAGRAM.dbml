@@ -1,0 +1,30 @@
+Table profiles {
+  id uuid [pk, note: 'references auth.users.id (Supabase-managed)']
+  fullName varchar
+  createdAt timestamp
+}
+
+Table Project {
+  id uuid [pk]
+  userId uuid [ref: > profiles.id]
+  name varchar
+  description text
+  status varchar
+  startDate timestamp
+  endDate timestamp
+  createdAt timestamp
+  updatedAt timestamp
+}
+
+Table Task {
+  id uuid [pk]
+  projectId uuid [ref: > Project.id]
+  userId uuid [ref: > profiles.id]
+  name varchar
+  description text
+  priority varchar
+  status varchar
+  dueDate timestamp
+  createdAt timestamp
+  updatedAt timestamp
+}
