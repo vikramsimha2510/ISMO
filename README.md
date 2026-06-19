@@ -129,35 +129,4 @@ The backend exposes a RESTful API running on `/api`. All protected routes requir
 
 ---
 
-## Setup & Local Development
 
-### Prerequisites
-- Node.js (v20+)
-- Docker & Docker Compose
-- A Supabase Project (for Auth & PostgreSQL)
-
-### 1. Environment Variables
-Copy `.env.example` to `.env` in the `server` directory and fill in your Supabase details:
-```env
-# server/.env
-DATABASE_URL="postgres://postgres.xxx:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgres://postgres.xxx:password@aws-0-region.pooler.supabase.com:5432/postgres"
-SUPABASE_URL="https://xxx.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY="eyJ..."
-```
-
-### 2. Run with Docker
-The easiest way to run the application locally is using Docker Compose:
-```bash
-docker-compose up -d --build
-```
-- **Frontend**: `http://localhost:5173`
-- **Backend**: `http://localhost:5000/api`
-
-### 3. Database Management (Prisma)
-To view and manage the live data locally through a GUI:
-```bash
-cd server
-npx prisma studio
-```
-This runs the database studio at `http://localhost:5555`.
