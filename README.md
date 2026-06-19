@@ -127,6 +127,54 @@ The backend exposes a RESTful API running on `/api`. All protected routes requir
 | GET | `/stats` | Get aggregate statistics (completion rates, task counts) | Yes |
 | GET | `/activity` | Get recent activity logs for the user | Yes |
 
----
+## Setup & Local Development
 
+### Prerequisites
+- Node.js (v20+)
+- Docker & Docker Compose
+- A Supabase Project (for Auth & PostgreSQL)
 
+### 1. Environment Variables
+Copy `.env.example` to `.env` in the `server` directory and fill in your Supabase details:
+```env
+# server/.env
+DATABASE_URL="postgres://postgres.xxx:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgres://postgres.xxx:password@aws-0-region.pooler.supabase.com:5432/postgres"
+SUPABASE_URL="https://xxx.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="eyJ..."
+```
+
+### 2. Run with Docker
+The easiest way to run the application locally is using Docker Compose:
+```bash
+docker-compose up -d --build
+```
+- **Frontend**: `http://localhost:5173`
+- **Backend**: `http://localhost:5000/api`
+
+### 3. Database Management (Prisma)
+To view and manage the live data locally through a GUI:
+```bash
+cd server
+npx prisma studio
+```
+This runs the database studio at `http://localhost:5555`.
+
+### Changing the Database to MySQL (Optional)
+Because this project uses the **Prisma ORM**, migrating the entire database from PostgreSQL to MySQL is incredibly easy. If you prefer to evaluate or run the project using MySQL:
+
+1. Open `server/prisma/schema.prisma`.
+2. Change the provider block at the top of the file:
+```prisma
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+```
+3. Update your `DATABASE_URL` in `server/.env` to a valid MySQL connection string:
+`DATABASE_URL="mysql://USER:PASSWORD@HOST:PORT/DATABASE"`
+4. Re-generate the database tables for MySQL by running:
+```bash
+cd server
+npx prisma db push
+```
